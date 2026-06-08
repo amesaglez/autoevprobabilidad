@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autoevaluación · Probabilidad · 4º ESO</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a12;
+    --surface: #131320;
+    --card: #1a1a2e;
+    --border: #2d2d4a;
+    --gold: #fbbf24;
+    --silver: #94a3b8;
+    --bronze: #cd7c32;
+    --green: #22c55e;
+    --red: #ef4444;
+    --blue: #60a5fa;
+    --violet: #a78bfa;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Lora',serif; min-height:100vh; }
+
+  /* ── HEADER ── */
+  .hero {
+    text-align:center; padding:48px 32px 32px;
+    background: radial-gradient(ellipse at top, rgba(167,139,250,.15) 0%, transparent 70%);
+    border-bottom: 1px solid var(--border);
+  }
+  .hero h1 { font-family:'Syne',sans-serif; font-weight:800; font-size:clamp(1.8rem,5vw,3rem); margin-bottom:8px; }
+  .hero p { color:var(--muted); font-size:.95rem; }
+  .hero .icons { font-size:2.5rem; margin-bottom:20px; }
+
+  /* ── PROGRESS ── */
+  .progress-wrap { display:flex; align-items:center; gap:16px; max-width:700px; margin:20px auto 0; padding:0 24px; }
+  .progress-track { flex:1; height:8px; background:var(--border); border-radius:8px; overflow:hidden; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,var(--violet),var(--gold)); border-radius:8px; transition:width .4s ease; }
+  .progress-label { font-family:'DM Mono',monospace; font-size:.75rem; color:var(--muted); white-space:nowrap; }
+
+  /* ── QUESTION AREA ── */
+  main { max-width:740px; margin:0 auto; padding:32px 24px 80px; }
+
+  /* Question card */
+  .q-card {
+    background:var(--card); border:1px solid var(--border);
+    border-radius:16px; padding:32px; margin-bottom:20px;
+    animation: fadeIn .3s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+  .q-meta { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+  .q-num { font-family:'DM Mono',monospace; font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; }
+  .q-topic { font-family:'DM Mono',monospace; font-size:.72rem; padding:3px 10px; border-radius:20px; }
+  .t1 { background:rgba(255,107,53,.15); color:#ff6b35; }
+  .t2 { background:rgba(0,201,167,.15); color:#00c9a7; }
+  .t3 { background:rgba(251,191,36,.15); color:var(--gold); }
+  .t4 { background:rgba(167,139,250,.15); color:var(--violet); }
+
+  .q-text { font-size:1.08rem; line-height:1.7; margin-bottom:24px; }
+  .q-text .formula { font-family:'DM Mono',monospace; background:var(--surface); padding:2px 8px; border-radius:4px; }
+
+  /* Options */
+  .options { display:flex; flex-direction:column; gap:10px; }
+  .opt {
+    padding:14px 20px; border-radius:10px; cursor:pointer;
+    border:1.5px solid var(--border); background:var(--surface);
+    font-size:1rem; line-height:1.5; transition:all .18s;
+    display:flex; align-items:flex-start; gap:12px;
+  }
+  .opt:hover { border-color:var(--violet); background:rgba(167,139,250,.08); }
+  .opt-letter { font-family:'DM Mono',monospace; font-size:.8rem; min-width:20px; color:var(--muted); margin-top:2px; }
+  .opt.correct { background:rgba(34,197,94,.12); border-color:var(--green); }
+  .opt.wrong { background:rgba(239,68,68,.1); border-color:var(--red); }
+  .opt.reveal-correct { background:rgba(34,197,94,.08); border-color:rgba(34,197,94,.5); }
+
+  /* Feedback */
+  .feedback-box {
+    border-radius:10px; padding:16px 20px; margin-top:16px;
+    font-size:.92rem; line-height:1.6; display:none;
+  }
+  .feedback-box.show { display:block; animation:fadeIn .25s ease; }
+  .fb-ok { background:rgba(34,197,94,.1); border:1px solid rgba(34,197,94,.3); }
+  .fb-ko { background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.25); }
+  .fb-icon { font-size:1.2rem; }
+
+  /* Next btn */
+  .next-btn {
+    display:none; width:100%; padding:14px;
+    font-family:'DM Mono',monospace; font-size:.9rem; font-weight:500;
+    background:var(--violet); color:white; border:none;
+    border-radius:10px; cursor:pointer; margin-top:14px;
+    transition:background .15s;
+  }
+  .next-btn:hover { background:#9061e8; }
+  .next-btn.show { display:block; }
+
+  /* ── SCORE PANEL ── */
+  .score-panel {
+    display:none; text-align:center; padding:48px 32px;
+    animation:fadeIn .4s ease;
+  }
+  .score-panel.show { display:block; }
+  .score-circle {
+    width:160px; height:160px; border-radius:50%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    margin:0 auto 32px;
+    border:4px solid var(--gold);
+    background:radial-gradient(circle, rgba(251,191,36,.15) 0%, transparent 70%);
+  }
+  .score-circle .big { font-family:'Syne',sans-serif; font-size:3rem; font-weight:800; }
+  .score-circle .small { font-family:'DM Mono',monospace; font-size:.8rem; color:var(--muted); }
+  .score-panel h2 { font-family:'Syne',sans-serif; font-size:2rem; margin-bottom:12px; }
+  .score-panel .sub { color:var(--muted); font-size:.95rem; max-width:460px; margin:0 auto 32px; line-height:1.6; }
+
+  .topic-scores { display:grid; grid-template-columns:1fr 1fr; gap:12px; max-width:480px; margin:0 auto 32px; }
+  .ts-box { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; text-align:left; }
+  .ts-box .ts-name { font-family:'DM Mono',monospace; font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; margin-bottom:6px; }
+  .ts-box .ts-score { font-family:'Syne',sans-serif; font-size:1.4rem; font-weight:700; }
+  .ts-box .ts-bar { height:4px; background:var(--border); border-radius:4px; margin-top:8px; overflow:hidden; }
+  .ts-box .ts-fill { height:100%; border-radius:4px; transition:width .5s ease; }
+
+  .retry-btn { font-family:'DM Mono',monospace; font-size:.9rem; padding:13px 32px; border-radius:10px; border:none; cursor:pointer; background:var(--violet); color:white; transition:background .15s; }
+  .retry-btn:hover { background:#9061e8; }
+
+  /* ── STAR ANIMATION ── */
+  .stars { font-size:2.5rem; margin-bottom:16px; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="icons">🎲🃏🪙🌳</div>
+  <h1>Autoevaluación Final</h1>
+  <p>El Gran Juego del Azar · 4º ESO · 20 preguntas</p>
+  <div class="progress-wrap">
+    <div class="progress-track"><div class="progress-fill" id="pfill" style="width:0%"></div></div>
+    <div class="progress-label" id="plabel">0 / 20</div>
+  </div>
+</div>
+
+<main>
+  <div id="q-area">
+    <div class="q-card" id="q-card">
+      <div class="q-meta">
+        <span class="q-num" id="q-num">Pregunta 1 de 20</span>
+        <span class="q-topic t1" id="q-topic">Sesión 1</span>
+      </div>
+      <div class="q-text" id="q-text"></div>
+      <div class="options" id="options"></div>
+      <div class="feedback-box" id="feedback"></div>
+      <button class="next-btn" id="next-btn" onclick="nextQ()">Siguiente pregunta →</button>
+    </div>
+  </div>
+  <div class="score-panel" id="score-panel">
+    <div class="stars" id="stars-display">⭐⭐⭐</div>
+    <div class="score-circle">
+      <div class="big" id="final-score">0</div>
+      <div class="small">de 20</div>
+    </div>
+    <h2 id="score-title">¡Buen trabajo!</h2>
+    <p class="sub" id="score-sub"></p>
+    <div class="topic-scores" id="topic-scores"></div>
+    <button class="retry-btn" onclick="restart()">🔄 Repetir autoevaluación</button>
+  </div>
+</main>
+
+<script>
+const questions = [
+  // SESIÓN 1 — Sucesos y experimentos
+  { topic:1, tag:'Sesión 1 · Sucesos',
+    text:'Se lanza un dado de 6 caras. ¿Cuál es el espacio muestral?',
+    opts:['{1,2,3,4,5,6}','{1,3,5}','{2,4,6}','∅'], correct:0,
+    exp:'El espacio muestral Ω recoge TODOS los resultados posibles del experimento.' },
+  { topic:1, tag:'Sesión 1 · Sucesos',
+    text:'Sea A = "sale número par" en un dado. ¿Cuál es el complementario A\'?',
+    opts:['{1,3,5}','{2,4,6}','{1,2,3}','{4,5,6}'], correct:0,
+    exp:"A' contiene los resultados que NO están en A. Par={2,4,6}, así que A'={1,3,5}." },
+  { topic:1, tag:'Sesión 1 · Operaciones',
+    text:'Con A = {2,4,6} y B = {1,2,3}, ¿cuántos elementos tiene A ∪ B?',
+    opts:['5','6','3','4'], correct:0,
+    exp:'A ∪ B = {1,2,3,4,6} → 5 elementos. El 2 aparece en ambos pero se cuenta solo una vez.' },
+  { topic:1, tag:'Sesión 1 · Operaciones',
+    text:'Con A = {2,4,6} y B = {1,2,3}, ¿cuántos elementos tiene A ∩ B?',
+    opts:['1','2','3','0'], correct:0,
+    exp:'A ∩ B = {2} → solo 1 elemento. El único número que está en los dos conjuntos.' },
+  { topic:1, tag:'Sesión 1 · Conceptos',
+    text:'Un suceso A y su complementario A\' son siempre:',
+    opts:['Mutuamente excluyentes y exhaustivos','Equiprobables','Independientes','Incompatibles y no exhaustivos'], correct:0,
+    exp:"A y A' no pueden ocurrir a la vez (excluyentes) y entre los dos cubren todo Ω (exhaustivos)." },
+  // SESIÓN 2 — Laplace
+  { topic:2, tag:'Sesión 2 · Laplace',
+    text:'Una bolsa tiene 4 fichas rojas, 3 azules y 3 verdes. ¿Cuál es P("sacar azul")?',
+    opts:['3/10','4/10','3/7','1/3'], correct:0,
+    exp:'P(azul) = 3 casos favorables / 10 posibles = 3/10 = 0.30.' },
+  { topic:2, tag:'Sesión 2 · Laplace',
+    text:'Se lanza un dado de 8 caras (del 1 al 8). ¿Cuál es P("sale número primo")?',
+    opts:['4/8 = 1/2','3/8','5/8','2/8'], correct:0,
+    exp:'Primos entre 1 y 8: {2,3,5,7} → 4 primos de 8 posibles → P = 4/8 = 1/2.' },
+  { topic:2, tag:'Sesión 2 · Propiedades',
+    text:'Si P(A) = 0,35, ¿cuánto vale P(A\')?',
+    opts:['0,65','0,35','1,35','0,5'], correct:0,
+    exp:"P(A') = 1 - P(A) = 1 - 0.35 = 0.65." },
+  { topic:2, tag:'Sesión 2 · Propiedades',
+    text:'La suma de todas las probabilidades de los resultados elementales de un espacio muestral es siempre:',
+    opts:['1','0','Depende del experimento','El número de resultados'], correct:0,
+    exp:'Propiedad fundamental: P(Ω) = 1. La suma de todos los resultados posibles siempre vale 1.' },
+  { topic:2, tag:'Sesión 2 · Laplace',
+    text:'De una baraja española de 40 cartas, ¿cuál es P("sacar un rey o un as")?',
+    opts:['8/40 = 1/5','4/40','2/4','10/40'], correct:0,
+    exp:'Hay 4 reyes + 4 ases = 8 cartas favorables de 40 → P = 8/40 = 1/5 = 0.20.' },
+  // SESIÓN 3 — Condicionada
+  { topic:3, tag:'Sesión 3 · Condicionada',
+    text:'En una clase de 30 alumnos, 18 practican deporte y 15 van al cine. 9 hacen ambas cosas. ¿Cuál es P(deporte | cine)?',
+    opts:['9/15 = 3/5','9/30','18/30','15/30'], correct:0,
+    exp:'P(D|C) = P(D∩C)/P(C) = (9/30)/(15/30) = 9/15 = 3/5 = 0.60.' },
+  { topic:3, tag:'Sesión 3 · Condicionada',
+    text:'Se sabe que P(A) = 0,4, P(B) = 0,5 y P(A∩B) = 0,2. ¿Cuánto vale P(A|B)?',
+    opts:['0,4','0,5','0,2','0,8'], correct:0,
+    exp:'P(A|B) = P(A∩B)/P(B) = 0,2 / 0,5 = 0,4. ¡Coincide con P(A)! → A y B son independientes.' },
+  { topic:3, tag:'Sesión 3 · Independencia',
+    text:'A y B son independientes cuando:',
+    opts:['P(A∩B) = P(A)·P(B)','P(A∩B) = 0','P(A|B) = P(B)','P(A∪B) = 1'], correct:0,
+    exp:'La condición de independencia es P(A∩B) = P(A)·P(B), equivalente a P(A|B) = P(A).' },
+  { topic:3, tag:'Sesión 3 · Regla del producto',
+    text:'P(A) = 0,6 y P(B|A) = 0,5. ¿Cuánto vale P(A∩B)?',
+    opts:['0,30','0,60','0,50','1,10'], correct:0,
+    exp:'P(A∩B) = P(A) · P(B|A) = 0,6 × 0,5 = 0,30.' },
+  { topic:3, tag:'Sesión 3 · Condicionada',
+    text:'¿En qué situación CAMBIA la probabilidad de sacar una ficha buena en una segunda extracción?',
+    opts:['Cuando la primera NO se repone','Cuando la primera sí se repone','Nunca cambia','Siempre cambia, reponga o no'], correct:0,
+    exp:'Sin reposición, el espacio muestral cambia (hay una ficha menos). Con reposición, la probabilidad es siempre la misma.' },
+  // SESIÓN 4 — Árbol
+  { topic:4, tag:'Sesión 4 · Árbol',
+    text:'Se lanza una moneda y luego un dado de 4 caras. ¿Cuántos resultados posibles hay en total?',
+    opts:['8','6','4','10'], correct:0,
+    exp:'2 ramas (cara/cruz) × 4 ramas (dado) = 8 resultados posibles en total.' },
+  { topic:4, tag:'Sesión 4 · Árbol',
+    text:'En un árbol de dos etapas independientes, la probabilidad de una hoja es:',
+    opts:['El producto de las probabilidades de su rama','La suma de las probabilidades de su rama','La probabilidad de la primera etapa','1 dividido por el número de hojas'], correct:0,
+    exp:'Regla del árbol: para eventos independientes, P(hoja) = P(rama 1) × P(rama 2). Se multiplica por el camino.' },
+  { topic:4, tag:'Sesión 4 · Con/sin reposición',
+    text:'Bolsa: 3 rojas y 2 azules. Se extraen 2 sin reposición. ¿Cuál es P("primera roja, segunda azul")?',
+    opts:['3/5 × 2/4 = 6/20','3/5 × 2/5','2/5 × 3/4','3/5 × 1/4'], correct:0,
+    exp:'Primera roja: 3/5. Sin reposición quedan 4 bolas (2 azules): segunda azul = 2/4. P = 3/5 × 2/4 = 6/20 = 3/10.' },
+  { topic:4, tag:'Sesión 4 · Árbol compuesto',
+    text:'Si quiero calcular P("al menos una cara") en dos lanzamientos de moneda, ¿qué hojas del árbol sumo?',
+    opts:['Cara-Cara, Cara-Cruz, Cruz-Cara','Solo Cara-Cara','Solo Cruz-Cruz','Cara-Cara, Cruz-Cruz'], correct:0,
+    exp:'"Al menos una cara" ocurre en CC, CX y XC. El único resultado favorable a "ninguna cara" es Cruz-Cruz, que NO se incluye.' },
+  { topic:4, tag:'Sesión 4 · Síntesis',
+    text:'Bolsa con 4 bolas: 2 rojas (R), 1 verde (V), 1 azul (A). Se sacan 2 con reposición. ¿Cuál es P("las dos del mismo color")?',
+    opts:['6/16 = 3/8','4/16','8/16','2/16'], correct:0,
+    exp:'Con reposición: P(RR)=(2/4)²=4/16, P(VV)=(1/4)²=1/16, P(AA)=(1/4)²=1/16. Total = 6/16 = 3/8.' },
+];
+
+// Shuffle
+function shuffle(arr) { return [...arr].sort(()=>Math.random()-.5); }
+
+let order = [], qIdx = 0, score = 0, answered = false;
+let topicScores = {1:{ok:0,tot:0},2:{ok:0,tot:0},3:{ok:0,tot:0},4:{ok:0,tot:0}};
+const topicColors = {1:'#ff6b35',2:'#00c9a7',3:'#fbbf24',4:'#a78bfa'};
+const topicNames = {1:'Sesión 1 · Sucesos',2:'Sesión 2 · Laplace',3:'Sesión 3 · Condicionada',4:'Sesión 4 · Árbol'};
+const letters = ['A','B','C','D'];
+
+function restart() {
+  order = shuffle(questions);
+  qIdx = 0; score = 0; answered = false;
+  topicScores = {1:{ok:0,tot:0},2:{ok:0,tot:0},3:{ok:0,tot:0},4:{ok:0,tot:0}};
+  document.getElementById('score-panel').classList.remove('show');
+  document.getElementById('q-area').style.display = 'block';
+  renderQ();
+}
+
+function renderQ() {
+  const q = order[qIdx];
+  const total = order.length;
+  document.getElementById('pfill').style.width = `${(qIdx/total)*100}%`;
+  document.getElementById('plabel').textContent = `${qIdx} / ${total}`;
+  document.getElementById('q-num').textContent = `Pregunta ${qIdx+1} de ${total}`;
+  document.getElementById('q-topic').textContent = q.tag;
+  document.getElementById('q-topic').className = `q-topic t${q.topic}`;
+  document.getElementById('q-text').innerHTML = q.text;
+  document.getElementById('feedback').className = 'feedback-box';
+  document.getElementById('next-btn').className = 'next-btn';
+  answered = false;
+
+  // Shuffle options preserving correct answer
+  const opts = q.opts.map((o,i)=>({text:o, correct:i===q.correct}));
+  const shuffled = shuffle(opts);
+  const correctIdx = shuffled.findIndex(o=>o.correct);
+
+  const container = document.getElementById('options');
+  container.innerHTML = shuffled.map((o,i) => `
+    <div class="opt" onclick="checkAnswer(${i},${correctIdx},\`${q.exp}\`)" id="opt-${i}">
+      <span class="opt-letter">${letters[i]}</span>
+      <span>${o.text}</span>
+    </div>`).join('');
+
+  topicScores[q.topic].tot++;
+}
+
+function checkAnswer(chosen, correct, exp) {
+  if (answered) return;
+  answered = true;
+  const q = order[qIdx];
+  const opts = document.querySelectorAll('.opt');
+  opts[chosen].classList.add(chosen===correct ? 'correct' : 'wrong');
+  if (chosen !== correct) opts[correct].classList.add('reveal-correct');
+  opts.forEach(o => o.style.cursor = 'default');
+
+  const fb = document.getElementById('feedback');
+  if (chosen === correct) {
+    score++;
+    topicScores[q.topic].ok++;
+    fb.className = 'feedback-box fb-ok show';
+    fb.innerHTML = `<span class="fb-icon">✓</span> <strong>¡Correcto!</strong> ${exp}`;
+  } else {
+    fb.className = 'feedback-box fb-ko show';
+    fb.innerHTML = `<span class="fb-icon">✗</span> <strong>Incorrecto.</strong> ${exp}`;
+  }
+  document.getElementById('next-btn').className = 'next-btn show';
+}
+
+function nextQ() {
+  qIdx++;
+  if (qIdx >= order.length) { showScore(); return; }
+  renderQ();
+  document.getElementById('pfill').style.width = `${(qIdx/order.length)*100}%`;
+  document.getElementById('plabel').textContent = `${qIdx} / ${order.length}`;
+}
+
+function showScore() {
+  document.getElementById('pfill').style.width = '100%';
+  document.getElementById('plabel').textContent = `${order.length} / ${order.length}`;
+  document.getElementById('q-area').style.display = 'none';
+  const panel = document.getElementById('score-panel');
+  panel.classList.add('show');
+  document.getElementById('final-score').textContent = score;
+
+  const pct = score / order.length;
+  let stars, title, sub;
+  if (pct >= 0.9) {
+    stars = '🌟🌟🌟'; title = '¡Extraordinario!';
+    sub = 'Dominas la probabilidad. Has construido una base sólida que seguirás usando en Bachillerato y más allá.';
+  } else if (pct >= 0.7) {
+    stars = '⭐⭐⭐'; title = '¡Muy bien!';
+    sub = 'Tienes un buen dominio de los conceptos fundamentales. Repasa los errores y consolida los puntos débiles.';
+  } else if (pct >= 0.5) {
+    stars = '⭐⭐'; title = 'Bien encaminado/a';
+    sub = 'Has entendido las ideas básicas. Vuelve a las fichas de las sesiones donde has fallado más y practica un poco más.';
+  } else {
+    stars = '⭐'; title = 'Sigue practicando';
+    sub = 'La probabilidad necesita tiempo. Vuelve a los simuladores y a las fichas: con un poco más de práctica lo conseguirás.';
+  }
+
+  document.getElementById('stars-display').textContent = stars;
+  document.getElementById('score-title').textContent = title;
+  document.getElementById('score-sub').textContent = sub;
+
+  const ts = document.getElementById('topic-scores');
+  ts.innerHTML = [1,2,3,4].map(t => {
+    const d = topicScores[t];
+    const p = d.tot > 0 ? Math.round((d.ok/d.tot)*100) : 0;
+    return `<div class="ts-box">
+      <div class="ts-name">${topicNames[t]}</div>
+      <div class="ts-score" style="color:${topicColors[t]}">${d.ok}/${d.tot}</div>
+      <div class="ts-bar"><div class="ts-fill" style="width:${p}%;background:${topicColors[t]}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+restart();
+</script>
+</body>
+</html>
